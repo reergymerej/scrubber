@@ -5,8 +5,29 @@ import urllib.parse
 
 s3 = boto3.resource('s3')
 
-def get_new_content(string):
-    return "This is new.\n\n" + string
+def get_patterns():
+    """
+    returns a list of tuples, [regex, replacement]
+    """
+    blacklist = [
+        ['banana', '1'],
+        ['file', '2'],
+    ]
+    patterns = []
+    for [b, replacement] in blacklist:
+        pattern = re.compile(b, flags=re.IGNORECASE)
+        patterns.append([pattern, replacement])
+    return patterns
+
+def replace_patterns(patterns, text):
+    for [pattern, replacement] in patterns:
+        text = re.sub(pattern, replacement, text)
+    return text
+
+def get_new_content(text):
+    patterns = get_patterns()
+    replaced = replace_patterns(patterns, text)
+    return replaced
 
 def lambda_handler(event, context):
     # print("Received event: " + json.dumps(event, indent=2))
@@ -38,26 +59,6 @@ def lambda_handler(event, context):
         print(e)
         print('Error getting object {} from bucket {}.'.format(key, bucket))
         raise e
-
-def get_patterns():
-    """
-    returns a list of tuples, [regex, replacement]
-    """
-    blacklist = [
-        'banana',
-        'file',
-    ]
-    patterns = []
-    for b in blacklist:
-        pattern = re.compile(b, flags=re.IGNORECASE)
-        replacement = len(b) * '*'
-        patterns.append([pattern, replacement])
-    return patterns
-
-def replace_patterns(patterns, text):
-    for [pattern, replacement] in patterns:
-        text = re.sub(pattern, replacement, text)
-    return text
 
 if __name__ == '__main__':
     with open('../file.txt', 'r') as f:
