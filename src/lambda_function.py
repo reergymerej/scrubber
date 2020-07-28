@@ -2,31 +2,34 @@ import boto3
 import json
 import re
 import urllib.parse
+import db
 
 s3 = boto3.resource('s3')
 
-def get_patterns():
+def get_blacklist():
+    query = "select text, id from scrubber"
+    # [('banana', 1), ('file', 2)]
+    return db.all(query)
+
+def get_replacements():
     """
     returns a list of tuples, [regex, replacement]
     """
-    blacklist = [
-        ['banana', '1'],
-        ['file', '2'],
-    ]
-    patterns = []
-    for [b, replacement] in blacklist:
-        pattern = re.compile(b, flags=re.IGNORECASE)
-        patterns.append([pattern, replacement])
-    return patterns
+    blacklist = get_blacklist()
+    replacements = []
+    for (token, replacement) in blacklist:
+        regex = re.compile(token, flags=re.IGNORECASE)
+        replacements.append([regex, str(replacement)])
+    return replacements
 
-def replace_patterns(patterns, text):
+def replace(patterns, text):
     for [pattern, replacement] in patterns:
         text = re.sub(pattern, replacement, text)
     return text
 
 def get_new_content(text):
-    patterns = get_patterns()
-    replaced = replace_patterns(patterns, text)
+    replacements = get_replacements()
+    replaced = replace(replacements, text)
     return replaced
 
 def lambda_handler(event, context):
@@ -63,6 +66,6 @@ def lambda_handler(event, context):
 if __name__ == '__main__':
     with open('../file.txt', 'r') as f:
         text = f.read()
-        patterns = get_patterns()
-        replaced = replace_patterns(patterns, text)
+        replacements = get_replacements()
+        replaced = replace(replacements, text)
         print(replaced)

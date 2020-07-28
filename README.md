@@ -38,4 +38,4 @@ aws lambda update-function-code \
 
 ## Next
 
-* Dynamic blacklist
+?
