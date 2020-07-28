@@ -1,7 +1,7 @@
-import re
-import json
-import urllib.parse
 import boto3
+import json
+import re
+import urllib.parse
 
 s3 = boto3.resource('s3')
 
@@ -40,19 +40,24 @@ def lambda_handler(event, context):
         raise e
 
 def get_patterns():
-    patterns = [
-        r'a',
-        r'e',
+    """
+    returns a list of tuples, [regex, replacement]
+    """
+    blacklist = [
+        'banana',
+        'file',
     ]
+    patterns = []
+    for b in blacklist:
+        pattern = re.compile(b, flags=re.IGNORECASE)
+        replacement = len(b) * '*'
+        patterns.append([pattern, replacement])
     return patterns
 
 def replace_patterns(patterns, text):
-    for p in patterns:
-        print(p)
-        text = re.sub(p, '*', text)
-        print(text)
+    for [pattern, replacement] in patterns:
+        text = re.sub(pattern, replacement, text)
     return text
-
 
 if __name__ == '__main__':
     with open('../file.txt', 'r') as f:
