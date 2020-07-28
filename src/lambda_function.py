@@ -1,3 +1,4 @@
+import re
 import json
 import urllib.parse
 import boto3
@@ -37,3 +38,25 @@ def lambda_handler(event, context):
         print(e)
         print('Error getting object {} from bucket {}.'.format(key, bucket))
         raise e
+
+def get_patterns():
+    patterns = [
+        r'a',
+        r'e',
+    ]
+    return patterns
+
+def replace_patterns(patterns, text):
+    for p in patterns:
+        print(p)
+        text = re.sub(p, '*', text)
+        print(text)
+    return text
+
+
+if __name__ == '__main__':
+    with open('../file.txt', 'r') as f:
+        text = f.read()
+        patterns = get_patterns()
+        replaced = replace_patterns(patterns, text)
+        print(replaced)
